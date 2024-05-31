@@ -1,6 +1,7 @@
 package com.example.sisvita.data
 import com.example.sisvita.data.models.AuthModel
 import com.example.sisvita.data.models.AuthResponseModel
+import com.example.sisvita.data.models.PreguntasFormularioModel
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -14,7 +15,8 @@ interface RetrofitService {
     suspend fun loginAccount(
         @Body authModel : AuthModel
     ) : AuthResponseModel
-
+    @GET("api/v2/questions")
+    suspend fun getQuestions(): List<PreguntasFormularioModel>
 
 }
 

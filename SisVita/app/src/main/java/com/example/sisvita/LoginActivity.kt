@@ -1,5 +1,6 @@
 package com.example.sisvita
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -79,11 +80,15 @@ class LoginActivity : ComponentActivity() {
                         Log.d("SisVita", "Status: ${response?.status}")  // Using Timber or Logcat
                         Log.d("SisVita", "Token: ${response?.token}")
                         if (response?.status.equals("sucess login")){
-
+                            response?.token?.let { saveToken(it,this@LoginActivity) }
                             Toast.makeText(this@LoginActivity, "Login Successful", Toast.LENGTH_SHORT).show()
                         }else{
                             Toast.makeText(this@LoginActivity,  "Login Failed", Toast.LENGTH_SHORT).show()
                         }
+                        if (response?.status.equals("sucess login")){
+                            startActivity(Intent(this@LoginActivity, TestActivity::class.java))
+                        }
+
 
                     }
                 },
