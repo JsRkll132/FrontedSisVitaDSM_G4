@@ -1,71 +1,42 @@
 package com.example.sisvita
 
+
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.lifecycleScope
-import com.example.sisvita.data.RetrofitService
-import com.example.sisvita.data.RetrofitServiceFactory
-import com.example.sisvita.data.models.AuthModel
-import com.example.sisvita.data.models.AuthResponseModel
-import com.example.sisvita.ui.theme.SisVitaTheme
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
-import retrofit2.await
+import androidx.compose.ui.unit.dp
 
 class MainActivity : ComponentActivity() {
-    private suspend fun callLoginApi(service: RetrofitService, model: AuthModel): AuthResponseModel {
-           return service.loginAccount(model)
-
-    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val makeRetrofitService = RetrofitServiceFactory.makeRetrofitService()
-        val model = AuthModel("bruto12345","jvc223344")
-        var response : AuthResponseModel
-        lifecycleScope.launch {
-            response = callLoginApi(makeRetrofitService, model)
-            Log.d("SisVita", "Status: ${response.status}")  // Using Timber or Logcat
-            Log.d("SisVita", "Token: ${response.token}")
-
-        }
-
-
         setContent {
-            SisVitaTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
-            }
+            MainScreen()
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    @Composable
+    fun MainScreen() {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(text = "Main Screen", style = MaterialTheme.typography.titleLarge)
+            Spacer(modifier = Modifier.height(16.dp))
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SisVitaTheme {
-        Greeting("Android")
+            Button(
+                onClick = {
+                    startActivity(Intent(this@MainActivity, LoginActivity::class.java))
+                }
+            ) {
+                Text("Go to Login")
+            }
+        }
     }
 }
