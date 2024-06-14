@@ -1,4 +1,4 @@
-package com.example.sisvita
+package com.example.sisvita.Activities
 
 import android.content.Intent
 import android.os.Bundle
@@ -11,9 +11,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.sisvita.ui.theme.SisVitaTheme
 
 class TestActivity : ComponentActivity() {
@@ -38,6 +37,22 @@ class TestActivity : ComponentActivity() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Button(
+                onClick = {
+                    startActivity(Intent(this@TestActivity, QuestionsActivity::class.java))
+                }
+            ) {
+                Text("Inventario de ansiedad de Beck")
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                onClick = {
+                    startActivity(Intent(this@TestActivity, QuestionsActivity::class.java))
+                }
+            ) {
+                Text("Inventario de ansiedad de Beck")
+            }
+            Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = {
                     startActivity(Intent(this@TestActivity, QuestionsActivity::class.java))

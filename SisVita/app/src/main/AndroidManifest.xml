@@ -12,9 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SisVita"
         tools:targetApi="31">
-        <activity android:name=".LoginActivity" />
-        <activity android:name=".TestActivity" />
-        <activity android:name=".QuestionsActivity" />
+        <activity android:name=".Activities.LoginActivity" />
+        <activity android:name=".Activities.TestActivity" />
+        <activity android:name=".Activities.QuestionsActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

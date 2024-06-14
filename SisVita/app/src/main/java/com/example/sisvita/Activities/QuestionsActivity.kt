@@ -1,5 +1,6 @@
-package com.example.sisvita
+package com.example.sisvita.Activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -7,14 +8,13 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
-import com.example.sisvita.data.RetrofitService
 import com.example.sisvita.data.RetrofitServiceFactory
 import com.example.sisvita.data.models.PreguntasFormularioModel
 import com.example.sisvita.ui.theme.SisVitaTheme
@@ -64,27 +64,44 @@ class QuestionsActivity : ComponentActivity() {
 
     @Composable
     fun QuestionsList(questions: List<PreguntasFormularioModel>) {
-        LazyColumn(
+        Column(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp)
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
-            items(questions) { question ->
-                QuestionItem(question)
-                Spacer(modifier = Modifier.height(16.dp))
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                itemsIndexed(questions) { index, question ->
+                    QuestionItem(index, question)
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Button(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                onClick = {
+                    // Acción al hacer clic en el botón
+                }
+            ) {
+                Text("Enviar Respuestas")
             }
         }
     }
 
     @Composable
-    fun QuestionItem(question: PreguntasFormularioModel) {
+    fun QuestionItem(index : Int ,question: PreguntasFormularioModel) {
         Column {
-            Text(text = question.pregunta, style = MaterialTheme.typography.bodyLarge)
+            Text(text = "\t\t\t${index+1}. ${question.pregunta}", style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.height(8.dp))
             val options = listOf(
-                "en absoluto",
-                "levemente, no me molesta mucho",
-                "moderadamente, fue muy desagradable pero podía soportarlo",
-                "severamente, casi no podía soportarlo"
+                "En absoluto",
+                "Levemente, no me molesta mucho",
+                "Moderadamente, fue muy desagradable pero podía soportarlo",
+                "Severamente, casi no podía soportarlo"
             )
             var selectedOption by remember { mutableStateOf(-1) }
 
