@@ -1,6 +1,8 @@
 package com.example.sisvita.Activities
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -14,11 +16,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
+import com.auth0.android.jwt.JWT
+import com.example.sisvita.clearToken
 import com.example.sisvita.data.RetrofitService
 import com.example.sisvita.data.RetrofitServiceFactory
 import com.example.sisvita.data.models.AuthModel
 import com.example.sisvita.data.models.AuthResponseModel
+import com.example.sisvita.getUserIdFromToken
 import com.example.sisvita.saveToken
+import com.example.sisvita.saveUserId
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -30,10 +36,11 @@ class LoginActivity : ComponentActivity() {
             LoginScreen()
         }
     }
+
     private suspend fun callLoginApi(service: RetrofitService, model: AuthModel): AuthResponseModel {
         return service.loginAccount(model)
-
     }
+
     @Composable
     fun LoginScreen() {
         var username by remember { mutableStateOf("") }
@@ -71,26 +78,33 @@ class LoginActivity : ComponentActivity() {
                 onClick = {
                     isLoading = true
                     val makeRetrofitService = RetrofitServiceFactory.makeRetrofitService()
-
-                    val model = AuthModel(password,username)
-                    var response : AuthResponseModel ?= null
+                    val model = AuthModel(password, username)
                     lifecycleScope.launch {
+                        try {
+                            val response = callLoginApi(makeRetrofitService, model)
+                            isLoading = false
+                            Log.d("SisVita", "Status: ${response?.status}")  // Using Timber or Logcat
+                            Log.d("SisVita", "Token: ${response?.token}")
+                            if (response?.status.equals("sucess login")) {
+                                Log.d("VERFIESD","in if resonpos")
+                                response.token?.let { token ->
+                                    saveToken(token, this@LoginActivity)
+                                    getUserIdFromToken(token)?.let { userId ->
+                                        saveUserId(userId, this@LoginActivity)
+                                    }
+                                    Toast.makeText(this@LoginActivity, "Login Successful", Toast.LENGTH_SHORT).show()
 
-                        response = callLoginApi(makeRetrofitService, model)
-                        isLoading = false
-                        Log.d("SisVita", "Status: ${response?.status}")  // Using Timber or Logcat
-                        Log.d("SisVita", "Token: ${response?.token}")
-                        if (response?.status.equals("sucess login")){
-                            response?.token?.let { saveToken(it,this@LoginActivity) }
-                            Toast.makeText(this@LoginActivity, "Login Successful", Toast.LENGTH_SHORT).show()
-                        }else{
-                            Toast.makeText(this@LoginActivity,  "Login Failed", Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                Toast.makeText(this@LoginActivity, "Login Failed", Toast.LENGTH_SHORT).show()
+                            }
+                            if (response?.status.equals("sucess login")){
+                                navigateToTestActivity()
+                            }
+                        } catch (e: Exception) {
+                            isLoading = false
+                            Toast.makeText(this@LoginActivity, "Failed to connect", Toast.LENGTH_SHORT).show()
                         }
-                        if (response?.status.equals("sucess login")){
-                            startActivity(Intent(this@LoginActivity, TestActivity::class.java))
-                        }
-
-
                     }
                 },
                 modifier = Modifier.fillMaxWidth(0.8f),
@@ -98,26 +112,22 @@ class LoginActivity : ComponentActivity() {
             ) {
                 Text("Iniciar sesión")
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+           /* Button(
+                onClick = {
+                    clearToken(this@LoginActivity)
+                },
+                modifier = Modifier.fillMaxWidth(0.8f)
+            ) {
+                Text("Cerrar sesión")
+            }*/
         }
     }
 
-    private suspend fun performLogin(request: AuthModel, callback: (Boolean, String?, String?) -> Unit) {
-        val apiService = RetrofitServiceFactory.makeRetrofitService()
-        try {
-            val response =  apiService.loginAccount(request)
-            if (response.status=="success login" ) {
-                callback(true, response.token, null)
-            } else {
-                callback(false, null, "Login Failed: ${response.status}")
-            }
-        } catch (e: HttpException) {
-            val errorBody = e.response()?.errorBody()?.string()
-            val errorMessage = errorBody ?: "HTTP Error: ${e.code()}"
-            callback(false, null, errorMessage)
-        } catch (e: IOException) {
-            callback(false, null, "Network error")
-        } catch (e: Exception) {
-            callback(false, null, "An unexpected error occurred")
-        }
+    private fun navigateToTestActivity() {
+        startActivity(Intent(this@LoginActivity, TestActivity::class.java))
+        finish()
     }
 }
