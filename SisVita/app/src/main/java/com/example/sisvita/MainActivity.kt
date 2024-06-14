@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.sisvita.Activities.LoginActivity
+import com.example.sisvita.Activities.RegisterActivity
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,7 +41,7 @@ class MainActivity : ComponentActivity() {
             }
             Button(
                 onClick = {
-                    startActivity(Intent(this@MainActivity, LoginActivity::class.java))
+                    startActivity(Intent(this@MainActivity, RegisterActivity::class.java))
                 }
             ) {
                 Text("Registrar Cuenta")

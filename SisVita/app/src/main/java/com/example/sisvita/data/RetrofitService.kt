@@ -5,6 +5,8 @@ import com.example.sisvita.data.models.FormularioEnvioModel
 import com.example.sisvita.data.models.FormularioModel
 import com.example.sisvita.data.models.FormularioResponseModel
 import com.example.sisvita.data.models.PreguntasFormularioModel
+import com.example.sisvita.data.models.RegisterModel
+import com.example.sisvita.data.models.RegisterUserResponse
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -30,6 +32,10 @@ interface RetrofitService {
     suspend fun submitForm(
         @Body formularioEnvioModel: FormularioEnvioModel
     ) : FormularioResponseModel
+    @POST("api/v2/register")
+    suspend fun registerUser(
+        @Body registerModel: RegisterModel
+    ) : RegisterUserResponse
 }
 
 
