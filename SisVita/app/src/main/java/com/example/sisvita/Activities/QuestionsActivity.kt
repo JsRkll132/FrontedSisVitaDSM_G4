@@ -180,6 +180,7 @@ class QuestionsActivity : ComponentActivity() {
                         val service = RetrofitServiceFactory.makeRetrofitService()
                         try {
                             val response = service.submitForm(formularioEnvio)
+                            
                             Toast.makeText(this@QuestionsActivity, "Formulario enviado exitosamente", Toast.LENGTH_SHORT).show()
                         } catch (e: Exception) {
                             Toast.makeText(this@QuestionsActivity, "Error al enviar el formulario", Toast.LENGTH_SHORT).show()
