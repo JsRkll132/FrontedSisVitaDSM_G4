@@ -1,6 +1,7 @@
 package com.example.sisvita.Activities
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,7 +23,7 @@ import com.example.sisvita.getUserIdFromToken
 import com.example.sisvita.ui.theme.SisVitaTheme
 import kotlinx.coroutines.launch
 
-data class Answer(val questionId: Int, var selectedOption: Int = -1, var score: Int = 0)
+data class Answer(val questionId: Int, var selectedOption: String = "", var score: Int = 0)
 
 class QuestionsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -92,7 +93,7 @@ class QuestionsActivity : ComponentActivity() {
     fun QuestionsList(
         questions: List<PreguntasFormularioModel>,
         answers: List<Answer>,
-        onAnswerSelected: (Int, Int, Int) -> Unit
+        onAnswerSelected: (Int, String, Int) -> Unit
     ) {
         val token = getToken(this)
         val userId = token?.let { getUserIdFromToken(it) }
@@ -125,7 +126,7 @@ class QuestionsActivity : ComponentActivity() {
         index: Int,
         question: PreguntasFormularioModel,
         answer: Answer?,
-        onOptionSelected: (Int, Int) -> Unit
+        onOptionSelected: (String,Int ) -> Unit
     ) {
         Column {
             Text(text = "\t\t\t${index + 1}. ${question.pregunta}", style = MaterialTheme.typography.bodyLarge)
@@ -140,9 +141,9 @@ class QuestionsActivity : ComponentActivity() {
                 val score = optionIndex // Ajusta la puntuación según sea necesario
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
-                        selected = answer?.selectedOption == optionIndex,
+                        selected = answer?.selectedOption == option,
                         onClick = {
-                            onOptionSelected(optionIndex, score)
+                            onOptionSelected(option, score)
                         }
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -163,7 +164,7 @@ class QuestionsActivity : ComponentActivity() {
                 .padding(16.dp)
                 .fillMaxWidth(),
             onClick = {
-                if (answers.all { it.selectedOption != -1 }) {
+                if (answers.all { it.selectedOption != "" }) {
                     val formularioEnvio = FormularioEnvioModel(
                         formulario_id = questions.first().formulario_id,
                         paciente_id = userId, // Usa el ID real del paciente
@@ -180,9 +181,16 @@ class QuestionsActivity : ComponentActivity() {
                         val service = RetrofitServiceFactory.makeRetrofitService()
                         try {
                             val response = service.submitForm(formularioEnvio)
-                            
-                            Toast.makeText(this@QuestionsActivity, "Formulario enviado exitosamente", Toast.LENGTH_SHORT).show()
+                            Log.d("RESPONSE STATUS",response.result_status.toString())
+                            if (response.result_status.equals(1)){
+                                Toast.makeText(this@QuestionsActivity, "Formulario enviado exitosamente", Toast.LENGTH_SHORT).show()
+                                finish()
+                            }else{
+                                Toast.makeText(this@QuestionsActivity, "No es posible añadir el formulario", Toast.LENGTH_SHORT).show()
+                            }
+
                         } catch (e: Exception) {
+
                             Toast.makeText(this@QuestionsActivity, "Error al enviar el formulario", Toast.LENGTH_SHORT).show()
                         }
                     }

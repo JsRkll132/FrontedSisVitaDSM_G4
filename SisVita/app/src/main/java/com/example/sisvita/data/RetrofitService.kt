@@ -1,5 +1,4 @@
 package com.example.sisvita.data
-import com.example.sisvita.data.models.AnswerFormModel
 import com.example.sisvita.data.models.AuthModel
 import com.example.sisvita.data.models.AuthResponseModel
 import com.example.sisvita.data.models.ContentFormModel
@@ -8,12 +7,9 @@ import com.example.sisvita.data.models.FormularioModel
 import com.example.sisvita.data.models.FormularioResponseModel
 import com.example.sisvita.data.models.PreguntasFormularioModel
 import com.example.sisvita.data.models.RegisterModel
-import com.example.sisvita.data.models.RegisterUserResponse
-import com.example.sisvita.data.models.ScoreFormModel
-import retrofit2.Call
+import com.example.sisvita.data.models.RegisterUserResponseModel
 import retrofit2.http.GET
 import retrofit2.http.POST
-import retrofit2.http.Query
 import retrofit2.http.Body
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -39,7 +35,7 @@ interface RetrofitService {
     @POST("api/v2/register")
     suspend fun registerUser(
         @Body registerModel: RegisterModel
-    ) : RegisterUserResponse
+    ) : RegisterUserResponseModel
 
     @GET("api/v2/ContentForm/{id}")
     suspend fun getContentForm(

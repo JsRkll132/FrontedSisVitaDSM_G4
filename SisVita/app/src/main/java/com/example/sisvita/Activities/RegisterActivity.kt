@@ -158,7 +158,7 @@ class RegisterActivity : ComponentActivity() {
             val service = RetrofitServiceFactory.makeRetrofitService()
             try {
                 val response = service.registerUser(user)
-                Log.d(response.status,response.sucess.toString())
+                Log.d(response.status.User,response.sucess.toString())
                 if (response.sucess == 1) {
                     Toast.makeText(this@RegisterActivity, "Usuario registrado exitosamente", Toast.LENGTH_SHORT).show()
                     finish() // Finaliza la actividad después del registro exitoso
