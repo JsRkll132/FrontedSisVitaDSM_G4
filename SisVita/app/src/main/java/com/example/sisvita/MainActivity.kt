@@ -29,8 +29,11 @@ class MainActivity : ComponentActivity() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = "Main Screen", style = MaterialTheme.typography.titleLarge)
+                Text(text = "SYSVITA", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(16.dp))
+
+
+
 
             Button(
                 onClick = {
