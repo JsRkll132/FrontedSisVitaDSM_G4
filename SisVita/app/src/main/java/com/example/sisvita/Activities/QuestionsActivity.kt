@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import com.example.sisvita.data.RetrofitServiceFactory
+import com.example.sisvita.data.models.ContentFormModel
 import com.example.sisvita.data.models.FormularioEnvioModel
 import com.example.sisvita.data.models.PreguntasFormularioModel
 import com.example.sisvita.data.models.Respuesta
@@ -53,6 +54,7 @@ class QuestionsActivity : ComponentActivity() {
     @Composable
     fun QuestionsScreen(formularioId: Int, userId: Int) {
         var questions by remember { mutableStateOf<List<PreguntasFormularioModel>>(emptyList()) }
+        var contentForm by remember { mutableStateOf<List<ContentFormModel>>(emptyList()) }
         var isLoading by remember { mutableStateOf(true) }
         var answers by remember { mutableStateOf<List<Answer>>(emptyList()) }
 
@@ -61,12 +63,13 @@ class QuestionsActivity : ComponentActivity() {
                 val service = RetrofitServiceFactory.makeRetrofitService()
                 try {
                     questions = service.getQuestions(formularioId)
+                    contentForm = service.getContentForm(formularioId)
                     answers = questions.map { Answer(it.id) } // Inicializa las respuestas con IDs de preguntas
                     isLoading = false
                 } catch (e: Exception) {
-                    print(e.toString())
+                    Log.e("QuestionsActivity", "Error loading data", e)
                     isLoading = false
-                    Toast.makeText(this@QuestionsActivity, "Failed to load questions", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@QuestionsActivity, "Failed to load data", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -76,7 +79,7 @@ class QuestionsActivity : ComponentActivity() {
                 CircularProgressIndicator()
             }
         } else {
-            QuestionsList(questions, answers) { questionId, selectedOption, score ->
+            QuestionsList(questions, answers, contentForm) { questionId, selectedOption, score ->
                 val updatedAnswers = answers.map { answer ->
                     if (answer.questionId == questionId) {
                         answer.copy(selectedOption = selectedOption, score = score)
@@ -93,6 +96,7 @@ class QuestionsActivity : ComponentActivity() {
     fun QuestionsList(
         questions: List<PreguntasFormularioModel>,
         answers: List<Answer>,
+        contentForm: List<ContentFormModel>,
         onAnswerSelected: (Int, String, Int) -> Unit
     ) {
         val token = getToken(this)
@@ -108,7 +112,8 @@ class QuestionsActivity : ComponentActivity() {
             ) {
                 itemsIndexed(questions) { index, question ->
                     val answer = answers.find { it.questionId == question.id }
-                    QuestionItem(index, question, answer) { selectedOption, score ->
+                    val options = contentForm.filter { it.formulario_id == question.formulario_id }
+                    QuestionItem(index, question, answer, options) { selectedOption, score ->
                         onAnswerSelected(question.id, selectedOption, score)
                     }
                     Spacer(modifier = Modifier.height(16.dp))
@@ -126,28 +131,22 @@ class QuestionsActivity : ComponentActivity() {
         index: Int,
         question: PreguntasFormularioModel,
         answer: Answer?,
-        onOptionSelected: (String,Int ) -> Unit
+        options: List<ContentFormModel>,
+        onOptionSelected: (String, Int) -> Unit
     ) {
         Column {
             Text(text = "\t\t\t${index + 1}. ${question.pregunta}", style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.height(8.dp))
-            val options = listOf(
-                "En absoluto",
-                "Levemente, no me molesta mucho",
-                "Moderadamente, fue muy desagradable pero podía soportarlo",
-                "Severamente, casi no podía soportarlo"
-            )
-            options.forEachIndexed { optionIndex, option ->
-                val score = optionIndex // Ajusta la puntuación según sea necesario
+            options.forEach { option ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
-                        selected = answer?.selectedOption == option,
+                        selected = answer?.selectedOption == option.respuesta_formulario,
                         onClick = {
-                            onOptionSelected(option, score)
+                            onOptionSelected(option.respuesta_formulario, option.puntaje)
                         }
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = option)
+                    Text(text = option.respuesta_formulario)
                 }
             }
         }
@@ -164,7 +163,7 @@ class QuestionsActivity : ComponentActivity() {
                 .padding(16.dp)
                 .fillMaxWidth(),
             onClick = {
-                if (answers.all { it.selectedOption != "" }) {
+                if (answers.all { it.selectedOption.isNotEmpty() }) {
                     val formularioEnvio = FormularioEnvioModel(
                         formulario_id = questions.first().formulario_id,
                         paciente_id = userId, // Usa el ID real del paciente
@@ -173,7 +172,7 @@ class QuestionsActivity : ComponentActivity() {
                                 paciente_id = userId, // Usa el ID real del paciente
                                 pregunta_id = it.questionId,
                                 puntuacion = it.score,
-                                respuesta = it.selectedOption.toString()
+                                respuesta = it.selectedOption
                             )
                         }
                     )
@@ -181,16 +180,14 @@ class QuestionsActivity : ComponentActivity() {
                         val service = RetrofitServiceFactory.makeRetrofitService()
                         try {
                             val response = service.submitForm(formularioEnvio)
-                            Log.d("RESPONSE STATUS",response.result_status.toString())
-                            if (response.result_status.equals(1)){
+                            Log.d("RESPONSE STATUS", response.result_status.toString())
+                            if (response.result_status == 1) {
                                 Toast.makeText(this@QuestionsActivity, "Formulario enviado exitosamente", Toast.LENGTH_SHORT).show()
                                 finish()
-                            }else{
+                            } else {
                                 Toast.makeText(this@QuestionsActivity, "No es posible añadir el formulario", Toast.LENGTH_SHORT).show()
                             }
-
                         } catch (e: Exception) {
-
                             Toast.makeText(this@QuestionsActivity, "Error al enviar el formulario", Toast.LENGTH_SHORT).show()
                         }
                     }
