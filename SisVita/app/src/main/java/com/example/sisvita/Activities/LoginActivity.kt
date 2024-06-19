@@ -47,6 +47,10 @@ class LoginActivity : ComponentActivity() {
         var password by remember { mutableStateOf("") }
         var isLoading by remember { mutableStateOf(false) }
 
+
+
+        
+
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
