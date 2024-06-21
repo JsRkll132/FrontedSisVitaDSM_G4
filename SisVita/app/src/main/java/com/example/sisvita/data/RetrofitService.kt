@@ -70,6 +70,10 @@ interface RetrofitService {
     @GET("api/v2/obtener/formularioCompletado/all")
     suspend fun obtener_puntuacionesAllService() :
             List<FormularioCompletadoModelResponse>
+    @GET("api/v2/obtener/formularioCompletado/formulario/{completado_formulario_id}")
+    suspend fun obtener_puntuaciones_paciente_formulario(
+        @Path("completado_formulario_id") completado_formulario_id : Int
+    ) :FormularioCompletadoModelResponse
 }
 
 
