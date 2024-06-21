@@ -2,9 +2,7 @@ package com.example.sisvita.Activities
 
 import android.util.Log
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.example.sisvita.data.RetrofitServiceFactory
 import com.example.sisvita.data.models.FormularioCompletadoModelResponse
