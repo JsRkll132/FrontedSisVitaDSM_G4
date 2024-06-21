@@ -1,16 +1,15 @@
 package com.example.sisvita.Activities
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,22 +22,65 @@ import kotlinx.coroutines.launch
 
 class TestActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         setContent {
             SisVitaTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colors.background
                 ) {
-                    TestScreen()
+                    MainScreen()
                 }
             }
         }
     }
 
+    @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     @Composable
-    fun TestScreen() {
+    fun MainScreen() {
+        val navItems = listOf("Home", "Forms", "Settings")
+        var selectedItem by remember { mutableStateOf(0) }
+
+        Scaffold(
+            bottomBar = {
+                BottomNavigation {
+                    navItems.forEachIndexed { index, item ->
+                        BottomNavigationItem(
+                            icon = {
+                                when (item) {
+                                    "Home" -> Icon(Icons.Filled.Home, contentDescription = item)
+                                    "Forms" -> Icon(Icons.Filled.List, contentDescription = item)
+                                    "Settings" -> Icon(Icons.Filled.Settings, contentDescription = item)
+                                }
+                            },
+                            label = { Text(item) },
+                            selected = selectedItem == index,
+                            onClick = { selectedItem = index }
+                        )
+                    }
+                }
+            }
+        ) {
+            when (selectedItem) {
+                0 -> HomeScreen()
+                1 -> FormsScreen()
+                2 -> SettingsScreen()
+            }
+        }
+    }
+
+    @Composable
+    fun HomeScreen() {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Home Screen")
+        }
+    }
+
+    @Composable
+    fun FormsScreen() {
         var forms by remember { mutableStateOf<List<FormularioModel>>(emptyList()) }
         var isLoading by remember { mutableStateOf(true) }
 
@@ -61,6 +103,16 @@ class TestActivity : ComponentActivity() {
             }
         } else {
             FormsList(forms)
+        }
+    }
+
+    @Composable
+    fun SettingsScreen() {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Settings Screen")
         }
     }
 

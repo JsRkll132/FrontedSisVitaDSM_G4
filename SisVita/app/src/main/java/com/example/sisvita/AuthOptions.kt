@@ -17,7 +17,10 @@ fun getUserIdFromToken(token: String): Int? {
     val jwt = JWT(token)
     return jwt.getClaim("id_user").asInt()
 }
-
+fun getGlobalUserIdFromToken(token: String): Int? {
+    val jwt = JWT(token)
+    return jwt.getClaim("usuario_id").asInt()
+}
 fun saveToken(token: String, context: Context) {
     val sharedPreferences: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     with(sharedPreferences.edit()) {
@@ -37,7 +40,13 @@ fun saveUserId(userId: Int, context: Context) {
         apply()
     }
 }
-
+fun saveGobalUserId(usuario_id: Int, context: Context) {
+    val sharedPreferences: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    with(sharedPreferences.edit()) {
+        putInt("usuario_id", usuario_id)
+        apply()
+    }
+}
 fun clearToken(context: Context) {
     val sharedPreferences: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     with(sharedPreferences.edit()) {

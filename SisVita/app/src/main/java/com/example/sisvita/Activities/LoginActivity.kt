@@ -29,7 +29,9 @@ import com.example.sisvita.data.RetrofitService
 import com.example.sisvita.data.RetrofitServiceFactory
 import com.example.sisvita.data.models.AuthModel
 import com.example.sisvita.data.models.AuthResponseModel
+import com.example.sisvita.getGlobalUserIdFromToken
 import com.example.sisvita.getUserIdFromToken
+import com.example.sisvita.saveGobalUserId
 import com.example.sisvita.saveToken
 import com.example.sisvita.saveUserId
 import kotlinx.coroutines.launch
@@ -116,6 +118,9 @@ class LoginActivity : ComponentActivity() {
                                         getUserIdFromToken(token)?.let { userId ->
                                             saveUserId(userId, this@LoginActivity)
                                         }
+                                        getGlobalUserIdFromToken(token)?.let{ usuario_id ->
+                                            saveGobalUserId(usuario_id,this@LoginActivity)
+                                        }
                                         Toast.makeText(
                                             this@LoginActivity,
                                             "Login Successful",
@@ -130,10 +135,15 @@ class LoginActivity : ComponentActivity() {
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
-                                if (response?.status.equals("sucess login")) {
+                                if (response?.status.equals("sucess login") && response?.type_user == 0)  {
                                     navigateToTestActivity()
                                 }
+                                else if (response?.status.equals("sucess login") && response?.type_user == 1){
+                                    Log.d("PSICOLOG","PSICOLOGO_INICIO_SESION")
+                                    navigateToPsychologistActivity()
+                                }
                             } catch (e: Exception) {
+                                Log.d("ERRPR",e.toString())
                                 isLoading = false
                                 Toast.makeText(
                                     this@LoginActivity,
@@ -165,6 +175,11 @@ class LoginActivity : ComponentActivity() {
 
     private fun navigateToTestActivity() {
         startActivity(Intent(this@LoginActivity, TestActivity::class.java))
+
+        finish()
+    }
+    private fun navigateToPsychologistActivity() {
+        startActivity(Intent(this@LoginActivity, PsychologistActivity::class.java))
         finish()
     }
 }
