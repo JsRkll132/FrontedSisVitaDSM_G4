@@ -1,5 +1,6 @@
 package com.example.sisvita.Activities
 
+import android.annotation.SuppressLint
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -14,10 +15,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,10 +39,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.sisvita.data.RetrofitServiceFactory
 import com.example.sisvita.data.models.DiagnosticModel
 import com.example.sisvita.data.models.FormularioCompletadoModelResponse
+import com.example.sisvita.data.models.FormularioModel
 import kotlinx.coroutines.launch
 
 
@@ -143,79 +151,145 @@ fun DiagnosticController(
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
-fun EvaluateResultsScreen(navController: NavController,sharedViewModel: SharedViewModel) {
-    // This composable should allow the specialist to evaluate test results,
-    // confirm the template result, add anxiety level, observations,
-    // invite for appointment, and notify via email or WhatsApp
-    var results by remember { mutableStateOf<List<FormularioCompletadoModelResponse>>(emptyList()) }
+fun EvaluateResultsScreen(navController: NavController, sharedViewModel: SharedViewModel) {
+    val formularioViewModel: FormularioViewModel = viewModel()
     var isLoading by remember { mutableStateOf(true) }
-    var trigger by remember { mutableStateOf(0) }
-    LaunchedEffect(Unit) {
-        val service = RetrofitServiceFactory.makeRetrofitService()
-        try {
-            results = service.obtener_puntuacionesAllService()
-            Log.d(results.get(0)?.apellido_materno,"")
-            isLoading = false
-        } catch (e: Exception) {
-            Log.e("EvaluateResultsScreen", "Error: ${e.message}", e)
-            isLoading = false
-            // Handle error
+    var results by mutableStateOf<List<FormularioCompletadoModelResponse>>((emptyList()))
+    var formTypes by mutableStateOf<List<FormularioModel>>((emptyList()))
+    isLoading = formularioViewModel.isLoading
+    @Composable
+    fun excecuteData() {
+        LaunchedEffect(Unit){
+            formularioViewModel.getFormularios()
+            formTypes = formularioViewModel.AllFormTypes
         }
     }
+    LaunchedEffect(Unit) {
+        formularioViewModel.getFormularios()
+        formularioViewModel.getFormTypes()
 
-    if (isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
-    } else {
-        LazyColumn {
-            items(results) { result ->
-                EvaluateResultItem(result, navController, sharedViewModel)
+    }
+
+    results = formularioViewModel.results
+    formTypes = formularioViewModel.AllFormTypes
+
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp)) {
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            var expanded by remember { mutableStateOf(false) }
+            var selectedFormType by remember { mutableStateOf<String?>(null) }
+
+            // Dropdown menu for selecting form type
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)) {
+                Column {
+                    Text("Seleccione el tipo de formulario")
+                    OutlinedButton(onClick = { expanded = true }) {
+                        Text( sharedViewModel.selectedFormType ?: "Todos los formularios")
+                    }
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(onClick = {
+                            sharedViewModel.selectedFormType = null
+                            expanded = false
+                        }) {
+                            Text("Todos los formularios",
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold))
+                        }
+                        formTypes.forEach { formType ->
+                            DropdownMenuItem(onClick = {
+                                sharedViewModel.selectedFormType= formType.formulario_tipo
+                                expanded = false
+
+                            }) {
+                                excecuteData()
+                                Text(formType.formulario_tipo,
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold))
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Filtering results based on selected form type
+            val filteredResults = if ( sharedViewModel.selectedFormType != null) {
+                results.filter { it.tipo_formulario ==  sharedViewModel.selectedFormType }
+            } else {
+                results
+            }
+
+            LazyColumn {
+                items(filteredResults) { result ->
+                    EvaluateResultItem(result, navController, sharedViewModel)
+                }
             }
         }
     }
 }
-
 @Composable
 fun EvaluateResultItem(
     result: FormularioCompletadoModelResponse,
     navController: NavController,
     sharedViewModel: SharedViewModel
 ) {
+    // Asegurarse de que los valores no sean nulos, proporcionando valores predeterminados
+    val levelAnxiety = result.nivel_ansiedad ?: "NORMAL"
+    val levelAnxietyColor = when (levelAnxiety) {
+        "MUY ALTA" -> Color(0xFFFF0000) // Rojo fuerte
+        "ALTA" -> Color(0xFFFF6666) // Rojo suave
+        "MODERADA" -> Color(0xFFFFA500) // Naranja
+        "NORMAL" -> MaterialTheme.colorScheme.surface // Color actual del tema
+        else -> MaterialTheme.colorScheme.surface // Color actual del tema
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp).clickable(onClick = {
+            .padding(8.dp)
+
+            .clickable(onClick = {
                 sharedViewModel.selectedResult = result
                 navController.navigate("evaluate/diagnostico")
             })
+
     ) {
         Column(
             modifier = Modifier.padding(1.dp)
+        
         ) {
             Row(
                 modifier = Modifier.padding(3.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Row (modifier = Modifier
-                    .background(color = Color(0xFFA9C6E3), shape = RoundedCornerShape(9.dp)) // Set rounded corners
-                    .clip(RoundedCornerShape(9.dp))){
+                Row(
+                    modifier = Modifier
+                        .background(
+                            color = Color(0xFFA9C6E3),
+                            shape = RoundedCornerShape(9.dp)
+                        )
+                        .clip(RoundedCornerShape(9.dp))
+                ) {
                     Text(
                         text = "Paciente: ",
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier
-
-
                     )
                     Text(
-                        text = "${result?.nombres} ${result?.apellido_paterno} ${result?.apellido_materno}",
+                        text = "${result.nombres ?: ""} ${result.apellido_paterno ?: ""} ${result.apellido_materno ?: ""}",
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier
-
                     )
                 }
-
             }
 
             Row(
@@ -226,14 +300,11 @@ fun EvaluateResultItem(
                     text = "Tipo de Formulario: ",
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier
-
                 )
                 Text(
-                    text = result?.tipo_formulario ?: "",
+                    text = result.tipo_formulario ?: "",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
-
-
                 )
             }
 
@@ -245,15 +316,27 @@ fun EvaluateResultItem(
                     text = "Puntuación Obtenida: ",
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier
-
-
                 )
                 Text(
-                    text = result?.suma_puntuacion?.toString() ?: "",
+                    text = result.suma_puntuacion?.toString() ?: "",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
+                )
+            }
 
-
+            Row(
+                modifier = Modifier.padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "Nivel de ansiedad según test: ",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier
+                )
+                Text(
+                    text = levelAnxiety,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
                 )
             }
 
@@ -265,10 +348,9 @@ fun EvaluateResultItem(
                     text = "Fecha: ",
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier
-
                 )
                 Text(
-                    text = result?.fecha_completado ?: "",
+                    text = result.fecha_completado ?: "",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                 )
@@ -276,7 +358,6 @@ fun EvaluateResultItem(
         }
     }
 }
-
 @Composable
 fun HeatMapScreen() {
     // This composable should visualize a heat map with the geographical location

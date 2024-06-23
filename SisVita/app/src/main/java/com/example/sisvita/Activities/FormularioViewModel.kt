@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sisvita.data.RetrofitServiceFactory
 import com.example.sisvita.data.models.FormularioCompletadoModelResponse
+import com.example.sisvita.data.models.FormularioModel
 import kotlinx.coroutines.launch
 
 class FormularioViewModel : ViewModel() {
@@ -46,4 +47,22 @@ class FormularioViewModel : ViewModel() {
             }
         }
     }
+    var AllFormTypes by mutableStateOf <List<FormularioModel>>(emptyList())
+        private set
+    fun getFormTypes() {
+        viewModelScope.launch {
+
+            val service = RetrofitServiceFactory.makeRetrofitService()
+
+            try {
+                AllFormTypes = service.getForms()
+                isLoading = false
+            } catch (e: Exception) {
+                Log.e("FAllFormTypes", "Error: ${e.message}", e)
+                isLoading = false
+                // Handle error
+            }
+        }
+    }
+
 }

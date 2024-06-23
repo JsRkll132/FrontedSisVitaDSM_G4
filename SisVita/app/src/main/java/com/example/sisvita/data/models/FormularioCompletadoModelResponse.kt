@@ -7,6 +7,7 @@ data class FormularioCompletadoModelResponse(
     val apellido_paterno: String,
     val completado_formulario_id: Int,
     val nombres: String,
+    val nivel_ansiedad : String,
     val suma_puntuacion: Int,
     val tipo_formulario: String,
     val fecha_completado :String,

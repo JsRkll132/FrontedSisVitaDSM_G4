@@ -80,7 +80,7 @@ interface RetrofitService {
 object RetrofitServiceFactory{
     fun makeRetrofitService() : RetrofitService {
         return Retrofit.Builder()
-            .baseUrl("https://backendsisvitadsm-g4.onrender.com/")
+            .baseUrl("http://192.168.1.38:5000/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(RetrofitService::class.java)
