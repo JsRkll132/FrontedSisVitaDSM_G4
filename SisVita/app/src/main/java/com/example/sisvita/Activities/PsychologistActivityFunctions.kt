@@ -1,6 +1,7 @@
 package com.example.sisvita.Activities
 
 import android.annotation.SuppressLint
+import android.text.style.BackgroundColorSpan
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -19,6 +20,7 @@ import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.MaterialTheme
@@ -242,17 +244,25 @@ fun EvaluateResultItem(
     navController: NavController,
     sharedViewModel: SharedViewModel
 ) {
+    //default Color(0xFFA9C6E3)
     // Asegurarse de que los valores no sean nulos, proporcionando valores predeterminados
     val levelAnxiety = result.nivel_ansiedad ?: "NORMAL"
-    val levelAnxietyColor = when (levelAnxiety) {
-        "MUY ALTA" -> Color(0xFFFF0000) // Rojo fuerte
-        "ALTA" -> Color(0xFFFF6666) // Rojo suave
-        "MODERADA" -> Color(0xFFFFA500) // Naranja
-        "NORMAL" -> MaterialTheme.colorScheme.surface // Color actual del tema
-        else -> MaterialTheme.colorScheme.surface // Color actual del tema
+    val levelAnxietyCardColor = when (levelAnxiety) {
+        "MUY ALTA" -> Color(0xFFFF8080) // Rojo fuerte
+        "ALTA" -> Color(0xC4FFA16F) // Rojo suave
+        "MODERADA" -> Color(0xCDFFE27C) // Naranja
+        "NORMAL" -> Color(0xC6D9FF93) // Color actual del tema
+        else -> Color(0xC6D9FF93) // Color actual del tema
     }
-
+    val levelAnxietyNameColor = when (levelAnxiety) {
+        "MUY ALTA" -> Color(0xFFFF0000) // Rojo fuerte
+        "ALTA" -> Color(0xC4FF5900) // Rojo suave
+        "MODERADA" -> Color(0xCDFFC700) // Naranja
+        "NORMAL" -> Color(0xC6A5FF00) // Color actual del tema
+        else -> Color(0xC6A5FF00) // Color actual del tema
+    }
     Card(
+
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
@@ -261,6 +271,10 @@ fun EvaluateResultItem(
                 sharedViewModel.selectedResult = result
                 navController.navigate("evaluate/diagnostico")
             })
+        ,
+        colors = CardDefaults.cardColors(
+            containerColor = levelAnxietyCardColor
+        )
 
     ) {
         Column(
@@ -274,7 +288,8 @@ fun EvaluateResultItem(
                 Row(
                     modifier = Modifier
                         .background(
-                            color = Color(0xFFA9C6E3),
+
+                            color =levelAnxietyNameColor,
                             shape = RoundedCornerShape(9.dp)
                         )
                         .clip(RoundedCornerShape(9.dp))
@@ -356,6 +371,7 @@ fun EvaluateResultItem(
                 )
             }
         }
+
     }
 }
 @Composable
