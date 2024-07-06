@@ -19,7 +19,12 @@
         tools:targetApi="tiramisu">
         <meta-data
             android:name="com.google.android.actions"
-            android:resource="@xml/network_security_config" />
+            android:resource="@xml/network_security_config"
+            />
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCxilyyEIHJsvFrb8Jao_zc4aggUwvnmz4"  />
+
 
         <activity android:name=".Activities.LoginActivity" />
         <activity android:name=".Activities.TestActivity" />
@@ -38,6 +43,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+
     </application>
 
 </manifest>
