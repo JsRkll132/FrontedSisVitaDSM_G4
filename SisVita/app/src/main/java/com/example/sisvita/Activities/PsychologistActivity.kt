@@ -5,12 +5,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -26,20 +25,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.sisvita.data.models.FormularioCompletadoModelResponse
-import com.example.sisvita.ui.theme.SisVitaTheme
+import com.example.sisvita.Activities.PsychologistActions.DiagnosticController
+import com.example.sisvita.Activities.PsychologistActions.EvaluateResultsScreen
+import com.example.sisvita.Activities.PsychologistActions.HeatmapScreen
+import com.example.sisvita.Activities.PsychologistActions.VigilanceScreen
+import com.example.sisvita.Activities.ViewModelsPackage.SharedViewModel
+
 
 class PsychologistActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            SisVitaTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
+
                     PsychologistScreen()
-                }
+
             }
         }
     }
@@ -50,9 +49,10 @@ class PsychologistActivity : ComponentActivity() {
         val navController = rememberNavController()
         val coroutineScope = rememberCoroutineScope()
         val sharedViewModel: SharedViewModel = viewModel()
+        sharedViewModel.isInVigilance = false
         Scaffold(
             topBar = {
-                Row {
+                Row() {
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
                         contentDescription = "Back",
@@ -60,6 +60,33 @@ class PsychologistActivity : ComponentActivity() {
                             .padding(16.dp)
                             .clickable(onClick = { navController.popBackStack() })
                     )
+                    if (sharedViewModel.isInVigilance){
+                        Row {
+
+                            SearchBar(
+                                query = sharedViewModel.searchQueryName ?: "",
+                                onQueryChange = { sharedViewModel.searchQueryName = it },
+                                onSearch = { /* No action needed here */ },
+                                active = false, // Keep SearchBar inactive
+                                onActiveChange = { /* No action needed here */ },
+                                placeholder = { Text("Buscar paciente / nivel ansiedad") },
+                                leadingIcon = { Icon(
+                                    imageVector = Icons.Filled.Refresh, contentDescription = "Reset",
+                                    tint = Color.Black,
+
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .clickable(onClick = { navController.navigate("evaluate") })
+
+                                )}
+                            ) {
+                            }
+
+
+                        }
+
+                    }
+
                 }
             },
 
@@ -72,8 +99,8 @@ class PsychologistActivity : ComponentActivity() {
             ) {
                 composable("vigilance") { VigilanceScreen() }
                 composable("evaluate") { EvaluateResultsScreen(navController,sharedViewModel) }
-                composable("heatmap") { HeatMapScreen() }
-                composable("evaluate/diagnostico") { DiagnosticController(navController,sharedViewModel )}
+                composable("heatmap") { HeatmapScreen(navController,sharedViewModel) }
+                composable("evaluate/diagnostico") { DiagnosticController(navController,sharedViewModel) }
             }
         }
     }
@@ -112,4 +139,4 @@ class PsychologistActivity : ComponentActivity() {
     }
 
     data class BottomNavItem(val label: String, val route: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
-}
+

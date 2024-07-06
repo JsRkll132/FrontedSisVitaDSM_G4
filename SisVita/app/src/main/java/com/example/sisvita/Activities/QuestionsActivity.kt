@@ -1,27 +1,36 @@
 package com.example.sisvita.Activities
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.lifecycleScope
 import com.example.sisvita.data.RetrofitServiceFactory
 import com.example.sisvita.data.models.ContentFormModel
+import com.example.sisvita.data.models.FormularioCompletadoModelResponse
 import com.example.sisvita.data.models.FormularioEnvioModel
+import com.example.sisvita.data.models.FormularioResponseModel
 import com.example.sisvita.data.models.PreguntasFormularioModel
 import com.example.sisvita.data.models.Respuesta
-import com.example.sisvita.getToken
-import com.example.sisvita.getUserIdFromToken
-import com.example.sisvita.ui.theme.SisVitaTheme
+
 import kotlinx.coroutines.launch
 
 data class Answer(val questionId: Int, var selectedOption: String = "", var score: Int = 0)
@@ -40,14 +49,14 @@ class QuestionsActivity : ComponentActivity() {
         }
 
         setContent {
-            SisVitaTheme {
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     QuestionsScreen(formularioId, userId)
                 }
-            }
+
         }
     }
 
@@ -151,13 +160,103 @@ class QuestionsActivity : ComponentActivity() {
             }
         }
     }
+    @Composable
+    fun showMessageDialog(
+        context: Context,
+        onConfirm:()->Unit,
+        finalUserInfo :FormularioCompletadoModelResponse
+    ){
+        val levelAnxietyNameColor = when (finalUserInfo.nivel_ansiedad) {
+            "MUY ALTA" -> Color(0xFFFF0000) // Rojo fuerte
+            "ALTA" -> Color(0xC4FF5900) // Rojo suave
+            "MODERADA" -> Color(0xCDFFC700) // Naranja
+            "NORMAL" -> Color(0xC6A5FF00) // Color actual del tema
+            else -> Color(0xC6A5FF00) // Color actual del tema
+        }
+        Dialog(onDismissRequest = { /*TODO*/ },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false
+            )
+        ) {
+            Card (
+                elevation=CardDefaults.cardElevation(5.dp),
+                shape = RoundedCornerShape(15.dp),
+                modifier = Modifier
+                    .fillMaxWidth(0.95f)
+                    .border(
+                        width = 1.dp,
+                        color = Color.LightGray,
+                        shape = RoundedCornerShape(15.dp)
+                    )
 
+
+            ){
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(15.dp)
+                    ,
+                    verticalArrangement = Arrangement.spacedBy(25.dp)
+                ) {
+                    Row (
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ){
+                        Text(text = "Resultados",
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center)
+
+                        Text(text = finalUserInfo.tipo_formulario ,
+                        style = MaterialTheme.typography.titleMedium ,
+                        textAlign = TextAlign.Center
+                        )
+                    }
+
+                    Column (
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(15.dp)
+                    ){
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Puntaje Obtenido : ")
+                            Text(finalUserInfo.suma_puntuacion.toString())
+
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Nivel de ansiedad : ")
+                            Text(finalUserInfo.nivel_ansiedad
+                            , color = levelAnxietyNameColor)
+
+                        }
+                    }
+                    Divider()
+                    Column (
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(15.dp)
+                    ){
+                        Button(onClick = {onConfirm()},
+                            Modifier.align(Alignment.CenterHorizontally)) {
+                            Text(text = "Aceptar")
+                        }
+
+                    }
+                }
+            }
+        }
+    }
     @Composable
     fun SubmitButton(
         questions: List<PreguntasFormularioModel>,
         answers: List<Answer>,
         userId: Int
     ) {
+        var ShowDialogResponse by remember { mutableStateOf(false)}
+        var response : FormularioResponseModel?  by remember { mutableStateOf(null)}
         Button(
             modifier = Modifier
                 .padding(16.dp)
@@ -176,21 +275,29 @@ class QuestionsActivity : ComponentActivity() {
                             )
                         }
                     )
+
                     lifecycleScope.launch {
                         val service = RetrofitServiceFactory.makeRetrofitService()
+                        response = service.submitForm(formularioEnvio)
                         try {
-                            val response = service.submitForm(formularioEnvio)
-                            Log.d("RESPONSE STATUS", response.result_status.toString())
-                            if (response.result_status == 1) {
+                            Log.d("RESPONSE STATUS", response?.result_status.toString())
+                            if (response?.result_status == 1) {
+                                ShowDialogResponse = true
                                 Toast.makeText(this@QuestionsActivity, "Formulario enviado exitosamente", Toast.LENGTH_SHORT).show()
-                                finish()
+
+                                if (!ShowDialogResponse){
+                                    finish()
+                                }
+
                             } else {
                                 Toast.makeText(this@QuestionsActivity, "No es posible añadir el formulario", Toast.LENGTH_SHORT).show()
                             }
                         } catch (e: Exception) {
                             Toast.makeText(this@QuestionsActivity, "Error al enviar el formulario", Toast.LENGTH_SHORT).show()
                         }
+
                     }
+
                 } else {
                     Toast.makeText(this@QuestionsActivity, "Responde todas las preguntas antes de enviar", Toast.LENGTH_SHORT).show()
                 }
@@ -198,5 +305,18 @@ class QuestionsActivity : ComponentActivity() {
         ) {
             Text("Enviar Respuestas")
         }
+        if (ShowDialogResponse){
+            response?.let {
+                showMessageDialog(context = LocalContext.current,
+                    onConfirm = { ShowDialogResponse = false
+                                finish()},
+                    finalUserInfo = it.data)
+            }
+        }
     }
+
+
+
 }
+
+
