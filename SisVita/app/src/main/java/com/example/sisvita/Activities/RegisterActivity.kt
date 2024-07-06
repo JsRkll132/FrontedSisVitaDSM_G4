@@ -6,20 +6,36 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.sisvita.Activities.ViewModelsPackage.HeatMapSvViewModel
+import com.example.sisvita.Activities.ViewModelsPackage.UbigeosViewModel
 import com.example.sisvita.data.RetrofitServiceFactory
 import com.example.sisvita.data.models.RegisterModel
+import com.example.sisvita.data.models.TotalUbigeosResponse
+import com.example.sisvita.data.models.TotalUbigeosResponseItem
 import kotlinx.coroutines.launch
 
+
+data class Distrito(val distrito: String, val ubigeo: String)
+data class Provincia(val provincia: String, val distritos: List<Distrito>)
+data class Departamento(val departamento: String, val provincias: List<Provincia>)
 class RegisterActivity : ComponentActivity() {
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -35,9 +51,19 @@ class RegisterActivity : ComponentActivity() {
         var lastNameM by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
         var email by remember { mutableStateOf("") }
+        var ubigeo by remember { mutableStateOf("") }
         var userType by remember { mutableStateOf("paciente") }
         var phoneNumber by remember { mutableStateOf("") }
         var expanded by remember { mutableStateOf(false) }
+        val viewModel : UbigeosViewModel = viewModel()
+
+        var  selectedDistrito by remember { mutableStateOf<com.example.sisvita.data.models.Distrito?>(null) }
+        var selectedProvincia  by remember { mutableStateOf<com.example.sisvita.data.models.Provincia?>(null) }
+        var selectedDepartamento by remember { mutableStateOf<TotalUbigeosResponseItem?>(null) }
+        LaunchedEffect(Unit) {
+            viewModel.getUbigeos()
+        }
+        val allData = viewModel.results
 
         Column(
             modifier = Modifier
@@ -52,28 +78,32 @@ class RegisterActivity : ComponentActivity() {
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
-                label = { Text("Nombre de Usuario") }
+                label = { Text("Nombre de Usuario") },
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = firstName,
                 onValueChange = { firstName = it },
-                label = { Text("Nombres") }
+                label = { Text("Nombres") },
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = lastNameP,
                 onValueChange = { lastNameP = it },
-                label = { Text("Apellido Paterno") }
+                label = { Text("Apellido Paterno") },
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = lastNameM,
                 onValueChange = { lastNameM = it },
-                label = { Text("Apellido Materno") }
+                label = { Text("Apellido Materno") },
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -81,18 +111,31 @@ class RegisterActivity : ComponentActivity() {
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Contraseña") },
-                visualTransformation = PasswordVisualTransformation()
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Correo") }
+                label = { Text("Correo") },
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = ubigeo,
+                onValueChange = { ubigeo = it },
+                label = { Text("N°Ubigeo") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
                 OutlinedTextField(
                     value = userType,
                     onValueChange = { },
@@ -102,11 +145,15 @@ class RegisterActivity : ComponentActivity() {
                         IconButton(onClick = { expanded = !expanded }) {
                             Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "Expand")
                         }
-                    }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
                 )
                 DropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier
+                        .fillMaxWidth()
                 ) {
                     DropdownMenuItem(
                         text = { Text("Paciente") },
@@ -124,12 +171,14 @@ class RegisterActivity : ComponentActivity() {
                     )
                 }
             }
+
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = phoneNumber,
                 onValueChange = { phoneNumber = it },
-                label = { Text("Número de Celular") }
+                label = { Text("Número de Celular") },
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -143,7 +192,8 @@ class RegisterActivity : ComponentActivity() {
                         contrasena = password,
                         correo = email,
                         tipo_usuario = userType,
-                        numero_celular = phoneNumber
+                        numero_celular = phoneNumber,
+                        ubigeo = ubigeo
                     )
                     registerUser(registerUser)
                 }
@@ -154,6 +204,7 @@ class RegisterActivity : ComponentActivity() {
     }
 
     private fun registerUser(user: RegisterModel) {
+
         lifecycleScope.launch {
             val service = RetrofitServiceFactory.makeRetrofitService()
             try {
@@ -170,5 +221,10 @@ class RegisterActivity : ComponentActivity() {
                 Toast.makeText(this@RegisterActivity, "Error al registrar el usuario", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+    @Composable
+    @Preview
+    fun RegisterScreenPreview(){
+        RegisterScreen()
     }
 }
