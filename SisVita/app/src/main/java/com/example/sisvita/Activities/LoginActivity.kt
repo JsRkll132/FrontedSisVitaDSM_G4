@@ -8,7 +8,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -26,11 +25,6 @@ import com.example.sisvita.data.RetrofitService
 import com.example.sisvita.data.RetrofitServiceFactory
 import com.example.sisvita.data.models.AuthModel
 import com.example.sisvita.data.models.AuthResponseModel
-import com.example.sisvita.getGlobalUserIdFromToken
-import com.example.sisvita.getUserIdFromToken
-import com.example.sisvita.saveGobalUserId
-import com.example.sisvita.saveToken
-import com.example.sisvita.saveUserId
 import kotlinx.coroutines.launch
 
 class LoginActivity : ComponentActivity() {
