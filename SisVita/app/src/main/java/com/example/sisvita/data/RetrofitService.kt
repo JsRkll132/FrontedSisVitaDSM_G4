@@ -8,10 +8,12 @@ import com.example.sisvita.data.models.FormularioCompletadoModelResponse
 import com.example.sisvita.data.models.FormularioEnvioModel
 import com.example.sisvita.data.models.FormularioModel
 import com.example.sisvita.data.models.FormularioResponseModel
+import com.example.sisvita.data.models.HeatMapResponseModel
 import com.example.sisvita.data.models.PreguntasFormularioModel
 import com.example.sisvita.data.models.RegisterModel
 import com.example.sisvita.data.models.RegisterUserResponseModel
 import com.example.sisvita.data.models.RespFormCompletPacient
+import com.example.sisvita.data.models.TotalUbigeosResponse
 import com.example.sisvita.data.models.UserByIdResponseModel
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -74,13 +76,17 @@ interface RetrofitService {
     suspend fun obtener_puntuaciones_paciente_formulario(
         @Path("completado_formulario_id") completado_formulario_id : Int
     ) :FormularioCompletadoModelResponse
+    @GET("/api/v2/get/heatMapService")
+    suspend fun executeHeatMapService() : HeatMapResponseModel
+    @GET("/api/v2/get/ubigeosService'")
+    suspend fun executeUbigeoService() : TotalUbigeosResponse
 }
 
 
 object RetrofitServiceFactory{
     fun makeRetrofitService() : RetrofitService {
         return Retrofit.Builder()
-            .baseUrl("https://backendsisvitadsm-g4.onrender.com/")
+            .baseUrl("http://192.168.1.38:5000/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(RetrofitService::class.java)

@@ -8,5 +8,6 @@ data class RegisterModel(
     val nombre_usuario: String,
     val nombres: String,
     val numero_celular: String,
-    val tipo_usuario: String
+    val tipo_usuario: String,
+    val ubigeo : String
 )

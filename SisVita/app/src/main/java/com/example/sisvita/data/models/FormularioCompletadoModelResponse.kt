@@ -5,6 +5,7 @@ import java.util.Date
 data class FormularioCompletadoModelResponse(
     val apellido_materno: String,
     val apellido_paterno: String,
+    val ubigeo: String,
     val completado_formulario_id: Int,
     val nombres: String,
     val nivel_ansiedad : String,
